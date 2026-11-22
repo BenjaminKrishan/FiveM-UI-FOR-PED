@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090a12">
+    <title>Neon District</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" aria-hidden="true">
+        <div id="world-layer" aria-hidden="true"></div>
+
+        <!-- Used only when this page is opened in a normal browser, not inside FiveM. -->
+        <div class="preview-figure" id="preview-figure" aria-hidden="true">
+            <svg viewBox="0 0 300 760" role="presentation" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="jacket" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#69707d"/>
+                        <stop offset=".45" stop-color="#252a35"/>
+                        <stop offset="1" stop-color="#11141d"/>
+                    </linearGradient>
+                    <linearGradient id="pants" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0" stop-color="#10141d"/>
+                        <stop offset=".48" stop-color="#414958"/>
+                        <stop offset="1" stop-color="#171b25"/>
+                    </linearGradient>
+                    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#e1b7a1"/>
+                        <stop offset=".55" stop-color="#a87866"/>
+                        <stop offset="1" stop-color="#57433f"/>
+                    </linearGradient>
+                    <linearGradient id="rifle" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#87909a"/>
+                        <stop offset=".45" stop-color="#303742"/>
+                        <stop offset="1" stop-color="#11151b"/>
+                    </linearGradient>
+                    <filter id="glow" x="-60%" y="-30%" width="220%" height="170%">
+                        <feGaussianBlur stdDeviation="12"/>
+                    </filter>
+                </defs>
+                <ellipse cx="150" cy="735" rx="94" ry="15" fill="#080a10" opacity=".86"/>
+                <ellipse cx="150" cy="715" rx="74" ry="14" fill="#f436ab" opacity=".38" filter="url(#glow)"/>
+                <!-- legs -->
+                <path d="M102 407 193 405 184 548 180 663 154 691 133 672 136 551 119 492 115 664 91 692 72 672 80 531 72 453Z" fill="url(#pants)" stroke="#929baa" stroke-opacity=".25" stroke-width="3"/>
+                <path d="m91 672 31 3 7 21-10 16-44 0 2-15Z M153 675l29-4 14 23-4 18-43-2-5-14Z" fill="#11151d" stroke="#87909b" stroke-opacity=".32" stroke-width="3"/>
+                <path d="m137 466 46 0-8 15-37 1M80 478l43 5" fill="none" stroke="#080b11" stroke-width="7" opacity=".65"/>
+                <!-- neck and head -->
+                <path d="m126 112 2 32 43 8 6-35Z" fill="url(#skin)"/>
+                <path d="M120 44q7-29 34-29 31 1 37 33l-6 43q-9 32-32 35-25-3-35-35l-4-24Z" fill="url(#skin)" stroke="#f0c0aa" stroke-opacity=".25" stroke-width="3"/>
+                <path d="M117 57q2-40 38-42 35 1 40 40l-15-10-14-12-15 12-24 11-9 19Z" fill="#151923"/>
+                <path d="M129 76h12m24 0h12" stroke="#221b1d" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+                <path d="M144 104q13 8 26-1" fill="none" stroke="#583934" stroke-width="3" stroke-linecap="round"/>
+                <path d="M111 73q-9 8-3 23l10 5m80-28q10 7 6 21l-11 7" fill="url(#skin)" stroke="#bf9480" stroke-width="3"/>
+                <!-- torso and arms -->
+                <path d="M123 139q-34 3-47 29l-20 73 17 30 25-13 12-46 5 123q38 21 91 0l-2-123 18 47 25 10 13-27-30-75q-16-25-50-28l-20 18-18-2Z" fill="url(#jacket)" stroke="#aeb8c8" stroke-opacity=".3" stroke-width="4"/>
+                <path d="m83 176-29 65-19 48q-4 15 12 22 15 6 24-9l29-54 15-38" fill="url(#skin)" stroke="#e4b5a0" stroke-opacity=".45" stroke-width="4"/>
+                <path d="m206 174 26 48 23 54q7 16-8 25-15 8-25-7l-34-54-18-42" fill="url(#skin)" stroke="#e4b5a0" stroke-opacity=".45" stroke-width="4"/>
+                <!-- chest rig -->
+                <path d="m108 165 25-13 17 19 17-20 28 13-6 92-72 0Z" fill="#171c26" stroke="#98a4b3" stroke-opacity=".4" stroke-width="3"/>
+                <path d="m133 168 17 18 17-18m-50 38h65m-62 20h58" fill="none" stroke="#758090" stroke-opacity=".62" stroke-width="4"/>
+                <path d="M120 186v57m59-57v57" stroke="#080b10" stroke-width="8" opacity=".72"/>
+                <path d="m143 267 20 0-3 63h-18Z" fill="#171b25" stroke="#697484" stroke-opacity=".4" stroke-width="3"/>
+                <!-- rifle, across the torso -->
+                <g transform="rotate(23 153 320)">
+                    <path d="M67 305h152l17 9-10 13H78l-11-8Z" fill="url(#rifle)" stroke="#c0cbd7" stroke-opacity=".43" stroke-width="3"/>
+                    <path d="M46 304h35v22H46l-11-10Z" fill="#171c24" stroke="#8b96a5" stroke-opacity=".45" stroke-width="3"/>
+                    <path d="M212 304h42v4h-42m-8 19h39v5h-41" fill="#151a23"/>
+                    <path d="M126 320v35h20v-35m16 0v20h21v-20" fill="#131821" stroke="#6f7b8a" stroke-width="3"/>
+                    <path d="M154 315q0 15-8 18l9 17 8-1 3-15" fill="#11151d" stroke="#6f7b8a" stroke-width="3"/>
+                    <path d="M82 308h120m-93 4h14m7 0h13m7 0h16" stroke="#b9c4d2" stroke-opacity=".56" stroke-width="2"/>
+                    <path d="M87 314h22" stroke="#13e4df" stroke-width="3" opacity=".74"/>
+                </g>
+                <!-- forearms over the weapon -->
+                <path d="m85 278 41 22 28 10q13 5 8 17-5 12-17 8l-38-11-42-20Z" fill="url(#skin)" stroke="#e4b5a0" stroke-opacity=".45" stroke-width="4"/>
+                <path d="m207 270-32 24-21 16q-10 9-2 18 9 9 21 2l36-25 23-20Z" fill="url(#skin)" stroke="#e4b5a0" stroke-opacity=".45" stroke-width="4"/>
+                <path d="m91 286 27 13m91-22-26 19" stroke="#171b25" stroke-opacity=".7" stroke-width="9" stroke-linecap="round"/>
+                <!-- cyan/magenta rim light -->
+                <path d="M69 220q-18 42-24 65m183-62q17 40 28 57M78 545l-2 113m108-105-4 112" fill="none" stroke="#61dff2" stroke-opacity=".3" stroke-width="4"/>
+            </svg>
+        </div>
+
+        <header class="topbar">
+            <a class="brand" href="#" aria-label="Neon District home">
+                <span class="brand-mark"><i></i><i></i><i></i></span>
+                <span class="brand-copy">
+                    <strong id="brand-title">NEON<span>//</span>OPS</strong>
+                    <small>LOS SANTOS</small>
+                </span>
+            </a>
+
+            <nav class="primary-nav" aria-label="Main navigation">
+                <button class="nav-item is-active" data-page="Queue">QUEUE</button>
+                <button class="nav-item" data-page="Tournament">TOURNAMENT</button>
+                <button class="nav-item" data-page="Leaderboard">LEADERBOARD</button>
+                <button class="nav-item" data-page="Gang">GANG</button>
+                <button class="nav-item" data-page="Profile">PROFILE</button>
+                <button class="nav-item" data-page="Battlepass">BATTLEPASS</button>
+                <button class="nav-item" data-page="Shop">SHOP</button>
+                <button class="nav-item" data-page="Career">CAREER</button>
+                <button class="nav-item" data-page="Stats">STATS</button>
+                <button class="nav-item" data-page="Ranks">RANKS</button>
+            </nav>
+
+            <div class="topbar-tools">
+                <span class="server-status"><i></i><span id="server-label">LOS SANTOS / US-01</span></span>
+                <button class="icon-button close-menu" id="close-menu" aria-label="Close menu" title="Close menu">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="lobby-screen">
+            <section class="left-status" aria-label="Lobby status">
+                <span class="eyebrow-pill"><span class="live-dot"></span> LOBBY</span>
+                <div class="team-heading">
+                    <span class="section-kicker">YOUR SQUAD</span>
+                    <h1>TEAM <span>01</span></h1>
+                    <div class="team-count"><span>01</span><b></b><span>05</span><small>OPERATORS</small></div>
+                </div>
+                <div class="mode-card">
+                    <div class="mode-icon"><span></span><span></span><span></span></div>
+                    <div><small>QUEUE MODE</small><strong>SQUAD ASSAULT</strong></div>
+                    <span class="mode-arrow">↗</span>
+                </div>
+            </section>
+
+            <div class="stage-meta">
+                <span class="stage-line"></span>
+                <span>PLAYER PREVIEW <b>·</b> LIVE</span>
+            </div>
+
+            <section class="team-stage" aria-label="Your team">
+                <button class="team-slot slot-one" data-slot="02" aria-label="Invite a teammate to slot 2">
+                    <span class="slot-plus">+</span><span class="slot-copy"><strong>OPEN SLOT</strong><small>INVITE PLAYER</small></span><span class="slot-number">02</span>
+                </button>
+                <button class="team-slot slot-two" data-slot="03" aria-label="Invite a teammate to slot 3">
+                    <span class="slot-plus">+</span><span class="slot-copy"><strong>OPEN SLOT</strong><small>INVITE PLAYER</small></span><span class="slot-number">03</span>
+                </button>
+                <button class="team-slot slot-three" data-slot="04" aria-label="Invite a teammate to slot 4">
+                    <span class="slot-plus">+</span><span class="slot-copy"><strong>OPEN SLOT</strong><small>INVITE PLAYER</small></span><span class="slot-number">04</span>
+                </button>
+                <button class="team-slot slot-four" data-slot="05" aria-label="Invite a teammate to slot 5">
+                    <span class="slot-plus">+</span><span class="slot-copy"><strong>OPEN SLOT</strong><small>INVITE PLAYER</small></span><span class="slot-number">05</span>
+                </button>
+
+                <article class="player-card" aria-label="Your player">
+                    <div class="player-card-banner">
+                        <span class="banner-label"><i></i> SQUAD LEADER</span>
+                        <span class="banner-level">LVL <b>01</b></span>
+                    </div>
+                    <div class="player-card-body">
+                        <div class="player-emblem"><span id="player-initial">N</span><small id="player-id">01</small></div>
+                        <div class="player-details">
+                            <strong id="player-name">NOVA</strong>
+                            <span><i class="weapon-dot"></i><span id="player-weapon">CARBINE RIFLE</span></span>
+                        </div>
+                        <div class="voice-state" aria-label="Voice active">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1m7 8v3m-4 0h8"/></svg>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <form class="chat-bar" id="chat-form" autocomplete="off">
+                <span class="chat-label">SQUAD:</span>
+                <input id="chat-input" type="text" maxlength="140" placeholder="Type a message..." aria-label="Lobby chat message">
+                <button type="submit" aria-label="Send message">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 4 17 8-17 8 3-8-3-8Zm3 8h14"/></svg>
+                </button>
+            </form>
+
+            <div class="bottom-hint"><span class="keycap">ESC</span><span>BACK TO GAME</span></div>
+        </main>
+
+        <aside class="friends-panel" id="friends-panel" aria-label="Friends and groups">
+            <div class="friends-header">
+                <div class="friends-icon">
+                    <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18.2 21.3a7.2 7.2 0 1 0 0-14.4 7.2 7.2 0 0 0 0 14.4Zm13.8-.8a5.8 5.8 0 1 0 0-11.6 5.8 5.8 0 0 0 0 11.6ZM4.8 36.9v-2.3c0-5.3 5.2-9.5 13.4-9.5s13.2 4.2 13.2 9.5v2.3c0 1.5-1.2 2.7-2.7 2.7H7.5c-1.5 0-2.7-1.2-2.7-2.7Zm28.1 2.1c1-.6 1.7-1.8 1.7-3.2v-1.4c0-3.4-1.6-6.3-4.5-8.2 7.4-.9 13.1 2.7 13.1 8.3v1.9c0 1.4-1.1 2.6-2.6 2.6Z"/></svg>
+                </div>
+                <div class="friends-heading">
+                    <h2>FRIENDS</h2>
+                    <p>Review requests, friends, and send requests.</p>
+                    <div class="friend-counts"><span>0 FRIENDS</span><span class="online-count"><i></i> ONLINE <b>⌄</b></span></div>
+                </div>
+                <button class="panel-chevron" id="collapse-panel" aria-label="Collapse friends panel" title="Collapse panel">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7M20 5l-7 7 7 7"/></svg>
+                </button>
+            </div>
+
+            <label class="search-box">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+                <input id="friend-search" type="search" placeholder="Search players..." autocomplete="off" aria-label="Search players">
+                <span class="search-shortcut">/</span>
+            </label>
+
+            <div class="friend-tabs" role="tablist" aria-label="Friend lists">
+                <button role="tab" data-friend-tab="Recents">RECENTS</button>
+                <button class="is-active" role="tab" data-friend-tab="Friends">FRIENDS</button>
+                <button role="tab" data-friend-tab="Add">ADD</button>
+            </div>
+
+            <div class="friend-content">
+                <div class="friend-section-heading">
+                    <h3 id="friend-section-title">FRIENDS</h3>
+                    <span class="section-rule"></span>
+                    <span class="friend-total">00</span>
+                </div>
+                <div class="friend-empty" id="friend-empty">
+                    <div class="empty-orbit"><span class="orbit-dot"></span><span class="empty-user-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 21a7 7 0 1 0 0-14 7 7 0 0 0 0 14Zm-13 15c0-5.4 5-9 13-9s13 3.6 13 9v3H5Zm28-16a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm-1 7c7.6-.4 12 3.1 12 8.2V39H34v-3c0-3.8-1.6-6.8-4.6-8.8Z"/></svg></span></div>
+                    <strong id="friend-empty-title">NO FRIENDS YET</strong>
+                    <p id="friend-empty-copy">Add friends from recently played or send a request in Add Friend.</p>
+                    <button class="add-friend-button" id="add-friend-button">FIND PLAYERS <span>↗</span></button>
+                </div>
+            </div>
+
+            <section class="lfg-section">
+                <button class="lfg-heading" id="lfg-toggle" aria-expanded="true">
+                    <span>LOOKING FOR GROUP</span><b class="lfg-online"><i></i> 0 ONLINE</b>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="lfg-content" id="lfg-content">
+                    <div class="lfg-empty-icon"><span></span><span></span><span></span></div>
+                    <strong id="lfg-title">NOBODY IS LOOKING FOR A GROUP</strong>
+                    <p id="lfg-copy">Set your status to Looking for Group to appear here for others.</p>
+                    <button class="lfg-status-button" id="lfg-status-button"><i></i><span>SET STATUS: LOOKING</span></button>
+                </div>
+            </section>
+        </aside>
+
+        <button class="reopen-panel" id="reopen-panel" aria-label="Open friends panel" title="Open friends panel">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12ZM3 20c0-3.5 4-6 9-6m7-8 3 3-3 3"/></svg>
+        </button>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
