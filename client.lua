@@ -1,11 +1,11 @@
 local menuOpen = false
 local lobbyCam = nil
+local previewPed = nil
 local savedPlayerState = nil
 
 local function getCameraPoint(ped, offset)
     local coords = GetEntityCoords(ped)
     local forward = GetEntityForwardVector(ped)
-    -- Local right vector, perpendicular to the ped's forward direction.
     local right = vector3(forward.y, -forward.x, 0.0)
 
     return vector3(
@@ -13,6 +13,31 @@ local function getCameraPoint(ped, offset)
         coords.y + right.y * (offset.right or 0.0) + forward.y * (offset.forward or 0.0),
         coords.z + (offset.up or 0.0)
     )
+end
+
+local function createPreviewPed(sourcePed)
+    -- ClonePed copies the player's current model, head blend, clothing, props,
+    -- and appearance. It is local-only and is deleted when the menu closes.
+    local clone = ClonePed(sourcePed, false, true, true)
+    if not clone or clone == 0 or not DoesEntityExist(clone) then
+        return nil
+    end
+
+    local coords = GetEntityCoords(sourcePed)
+    SetEntityAsMissionEntity(clone, true, true)
+    SetEntityCoordsNoOffset(clone, coords.x, coords.y, coords.z, false, false, false)
+    SetEntityHeading(clone, GetEntityHeading(sourcePed))
+    SetEntityVisible(clone, true, false)
+    ResetEntityAlpha(clone)
+    SetEntityCollision(clone, false, false)
+    SetEntityInvincible(clone, true)
+    SetEntityCanBeDamaged(clone, false)
+    SetBlockingOfNonTemporaryEvents(clone, true)
+    SetPedCanRagdoll(clone, false)
+    ClearPedTasksImmediately(clone)
+    FreezeEntityPosition(clone, true)
+
+    return clone
 end
 
 local function createLobbyCamera(ped)
@@ -31,23 +56,51 @@ end
 local function equipPreviewWeapon(ped)
     local weaponName = Config.PreviewWeapon
     if type(weaponName) ~= 'string' or weaponName == '' then
-        return nil, false
+        return
     end
 
     local weaponHash = GetHashKey(weaponName)
-    local alreadyOwned = HasPedGotWeapon(ped, weaponHash, false)
-    local addedForPreview = false
-
-    if not alreadyOwned and Config.GivePreviewWeaponIfMissing then
+    if not HasPedGotWeapon(ped, weaponHash, false) and Config.GivePreviewWeaponIfMissing then
         GiveWeaponToPed(ped, weaponHash, Config.PreviewAmmo or 0, false, true)
-        addedForPreview = HasPedGotWeapon(ped, weaponHash, false)
     end
 
     if HasPedGotWeapon(ped, weaponHash, false) then
         SetCurrentPedWeapon(ped, weaponHash, true)
     end
+end
 
-    return weaponHash, addedForPreview
+local function drawPreviewLighting(ped)
+    if not Config.PreviewLighting or not DoesEntityExist(ped) then
+        return
+    end
+
+    local coords = GetEntityCoords(ped)
+    local forward = GetEntityForwardVector(ped)
+    local right = vector3(forward.y, -forward.x, 0.0)
+
+    -- A soft key light plus subtle cyan/magenta fills keep dark outfits and
+    -- custom character models readable while preserving the live 3D ped.
+    DrawLightWithRange(
+        coords.x + forward.x * 1.75,
+        coords.y + forward.y * 1.75,
+        coords.z + 1.25,
+        245, 244, 255,
+        8.0, 2.0
+    )
+    DrawLightWithRange(
+        coords.x + right.x * 1.15 - forward.x * 0.2,
+        coords.y + right.y * 1.15 - forward.y * 0.2,
+        coords.z + 1.45,
+        60, 220, 255,
+        5.0, 0.75
+    )
+    DrawLightWithRange(
+        coords.x - right.x * 1.15 - forward.x * 0.2,
+        coords.y - right.y * 1.15 - forward.y * 0.2,
+        coords.z + 1.35,
+        255, 65, 130,
+        5.0, 0.65
+    )
 end
 
 local function closeMenu(silent)
@@ -64,22 +117,15 @@ local function closeMenu(silent)
     end
 
     if savedPlayerState and DoesEntityExist(savedPlayerState.ped) then
-        local ped = savedPlayerState.ped
-
-        if savedPlayerState.addedPreviewWeapon
-            and Config.RemovePreviewWeaponOnClose
-            and savedPlayerState.previewWeaponHash then
-            RemoveWeaponFromPed(ped, savedPlayerState.previewWeaponHash)
-        end
-
-        if savedPlayerState.selectedWeapon then
-            SetCurrentPedWeapon(ped, savedPlayerState.selectedWeapon, true)
-        end
-
         if Config.FreezePlayerWhileOpen then
-            FreezeEntityPosition(ped, savedPlayerState.wasFrozen or false)
+            FreezeEntityPosition(savedPlayerState.ped, savedPlayerState.wasFrozen or false)
         end
     end
+
+    if previewPed and previewPed ~= (savedPlayerState and savedPlayerState.ped) and DoesEntityExist(previewPed) then
+        DeleteEntity(previewPed)
+    end
+    previewPed = nil
 
     local transitionMs = (Config.Camera and Config.Camera.transitionMs) or 650
     RenderScriptCams(false, true, transitionMs, true, true)
@@ -108,21 +154,17 @@ local function openMenu()
     menuOpen = true
     savedPlayerState = {
         ped = ped,
-        selectedWeapon = GetSelectedPedWeapon(ped),
-        wasFrozen = IsEntityPositionFrozen(ped),
-        addedPreviewWeapon = false,
-        previewWeaponHash = nil
+        wasFrozen = IsEntityPositionFrozen(ped)
     }
 
     if Config.FreezePlayerWhileOpen then
         FreezeEntityPosition(ped, true)
     end
 
-    local weaponHash, addedPreviewWeapon = equipPreviewWeapon(ped)
-    savedPlayerState.previewWeaponHash = weaponHash
-    savedPlayerState.addedPreviewWeapon = addedPreviewWeapon
+    previewPed = createPreviewPed(ped) or ped
+    equipPreviewWeapon(previewPed)
+    createLobbyCamera(previewPed)
 
-    createLobbyCamera(ped)
     SetNuiFocus(true, true)
     SetNuiFocusKeepInput(false)
 
@@ -155,6 +197,16 @@ CreateThread(function()
             Wait(0)
             HideHudAndRadarThisFrame()
             DisablePlayerFiring(PlayerId(), true)
+
+            -- Hide only the original ped locally; other players still see the
+            -- real player. The cloned preview model is what the camera renders.
+            if savedPlayerState and previewPed ~= savedPlayerState.ped and DoesEntityExist(savedPlayerState.ped) then
+                SetEntityLocallyInvisible(savedPlayerState.ped)
+            end
+
+            if previewPed and DoesEntityExist(previewPed) then
+                drawPreviewLighting(previewPed)
+            end
 
             if IsEntityDead(PlayerPedId()) then
                 closeMenu(false)

@@ -1,6 +1,6 @@
 # Neon District — FiveM live-ped lobby menu
 
-A standalone FiveM resource inspired by the supplied lobby screenshot. Type **`/menu`** (or press **F7**) to open a full-screen neon lobby. It uses the **actual player ped** in a scripted camera, rather than spawning a replacement ped, so the current freemode/model and clothing are visible in real time.
+A standalone FiveM resource inspired by the supplied lobby screenshot. Type **`/menu`** (or press **F7**) to open a full-screen neon lobby. On open, a local preview ped is cloned directly from the player's current ped and shown through a scripted camera. This copies the exact in-game model, head blend, clothing and props without changing the real player's inventory or appearance.
 
 ## Install
 
@@ -19,15 +19,15 @@ Edit `config.lua`:
 
 - `Config.PreviewWeapon` — weapon hash/name, for example `WEAPON_CARBINERIFLE` or `WEAPON_ASSAULTRIFLE`.
 - `Config.PreviewWeaponLabel` — label shown on the player card.
-- `Config.PreviewAmmo` — ammo used only if a temporary preview weapon has to be given.
-- `Config.GivePreviewWeaponIfMissing` — temporarily give the configured weapon if the player does not already own it.
-- `Config.RemovePreviewWeaponOnClose` — remove that temporary weapon when the menu closes.
+- `Config.PreviewAmmo` — ammo used only if a preview weapon has to be given to the clone.
+- `Config.GivePreviewWeaponIfMissing` — give the configured weapon to the local clone if it does not already have it.
+- `Config.PreviewLighting` — enable subtle preview lights so dark outfits remain visible.
 - `Config.Camera` — adjust camera distance, height, framing and field of view.
 
-The selected weapon is restored on close. If the configured weapon was already in the player's inventory, this script does not remove it or change its ammo. Set `Config.PreviewWeapon = nil` to disable the weapon preview. Inventory resources can take control of client weapons; if yours blocks temporary client weapons, set `GivePreviewWeaponIfMissing = false` and use a weapon your inventory already provides.
+The weapon is only placed on the local preview clone; it never changes the real player's inventory, ammo or selected weapon. The clone is deleted when the menu closes. Set `Config.PreviewWeapon = nil` to disable the weapon preview. Inventory resources can take control of client weapons; if yours blocks temporary client weapons, set `GivePreviewWeaponIfMissing = false` and use a weapon the clone already inherited.
 
 ## Notes
 
 - No ESX, QBCore, or other framework dependency is required for the menu/camera.
-- The cyberpunk city backdrop is a bundled image. A transparent opening reveals the live game camera and player ped; clothing changes made by your appearance resource remain visible because the menu does not clone or restyle the ped.
+- The cyberpunk city backdrop is a bundled image. Its transparent player-stage opening reveals the game camera and the local preview clone copied from the current player ped at menu-open time; no clothing or model is hard-coded.
 - The lobby tabs, friend list, team slots and chat area are front-end presentation only. Connect them to your server's party/friends/chat systems if you want those features to perform server actions.
