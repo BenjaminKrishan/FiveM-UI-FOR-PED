@@ -9,14 +9,14 @@ Config.DefaultKey = 'F7'
 Config.MenuTitle = 'NEON DISTRICT'
 Config.ServerLabel = 'LOS SANTOS  /  US-01'
 
--- The live player ped is used for the preview, so the player's current model and
--- clothing are kept exactly as they are. This weapon is only equipped for the
--- lobby preview. If the player does not own it, a temporary copy can be given.
+-- A local preview clone is copied from the current player ped when /menu opens,
+-- preserving the model, head blend, clothing, and props. This weapon is equipped
+-- only on that clone, so the player's real inventory/selected weapon is untouched.
 Config.PreviewWeapon = 'WEAPON_CARBINERIFLE'
 Config.PreviewWeaponLabel = 'CARBINE RIFLE'
 Config.PreviewAmmo = 90
 Config.GivePreviewWeaponIfMissing = true
-Config.RemovePreviewWeaponOnClose = true
+Config.PreviewLighting = true
 
 -- Camera offsets are relative to the player's facing direction.
 -- Increase forward for a wider/full-body view; raise lookAt.up to aim higher.
