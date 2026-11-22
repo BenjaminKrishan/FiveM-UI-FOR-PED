@@ -44,6 +44,7 @@ button {
     position: fixed;
     inset: 0;
     overflow: hidden;
+    background: transparent;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -66,35 +67,28 @@ button {
     position: absolute;
     inset: 0;
     z-index: -2;
-    background-color: #080913;
-    background-image:
-        linear-gradient(90deg, rgba(5, 6, 14, .32) 0%, rgba(6, 7, 15, .08) 39%, rgba(5, 6, 13, .3) 100%),
-        linear-gradient(180deg, rgba(6, 7, 15, .3) 0%, rgba(7, 7, 14, .04) 35%, rgba(6, 7, 14, .22) 63%, rgba(5, 6, 12, .86) 100%),
-        url("assets/neon-city.jpg");
+    background-color: transparent;
+    background-image: url("assets/neon-city-stage.png");
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
 }
 
-/* The mask is a transparent viewport onto the game render. FiveM draws the
-   real player ped there; the generated city art stays around the opening. */
-body:not(.browser-preview) #world-layer {
-    -webkit-mask-image: radial-gradient(ellipse 13% 46% at 40% 53%, transparent 0 78%, rgba(0, 0, 0, .4) 90%, #000 100%);
-    mask-image: radial-gradient(ellipse 13% 46% at 40% 53%, transparent 0 78%, rgba(0, 0, 0, .4) 90%, #000 100%);
-    -webkit-mask-mode: alpha;
-    mask-mode: alpha;
-}
-
+/* Browser-only preview uses the opaque art under the illustrative SVG avatar.
+   FiveM uses the bundled PNG with a real alpha cutout for the live game ped. */
 body.browser-preview #world-layer {
-    -webkit-mask-image: none;
-    mask-image: none;
+    background-color: #080913;
+    background-image:
+        linear-gradient(90deg, rgba(5, 6, 14, .32) 0%, rgba(6, 7, 15, .08) 39%, rgba(5, 6, 13, .3) 100%),
+        linear-gradient(180deg, rgba(6, 7, 15, .3) 0%, rgba(7, 7, 14, .04) 35%, rgba(6, 7, 14, .22) 63%, rgba(5, 6, 12, .86) 100%),
+        url("assets/neon-city.jpg");
 }
 
 .preview-figure {
     display: none;
     position: absolute;
     z-index: -1;
-    left: 39.6%;
+    left: 50%;
     bottom: 7.2%;
     width: clamp(205px, 20vw, 315px);
     height: min(70vh, 720px);
@@ -464,7 +458,7 @@ body.browser-preview .preview-figure {
     position: absolute;
     z-index: 1;
     top: 112px;
-    left: 40%;
+    left: 50vw;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -576,7 +570,7 @@ body.browser-preview .preview-figure {
 .player-card {
     position: absolute;
     top: 2px;
-    left: 52%;
+    left: 50vw;
     width: 294px;
     height: 86px;
     overflow: hidden;
@@ -1518,7 +1512,7 @@ body.browser-preview .preview-figure {
     .primary-nav { display: none; }
     .topbar-tools { margin-left: auto; border-left: 0; }
     .left-status { top: 75px; left: 12px; transform: scale(.8); }
-    .stage-meta { top: 77px; left: 40%; font-size: 7px; }
+    .stage-meta { top: 77px; left: 50vw; font-size: 7px; }
     .team-stage { right: var(--panel-width); bottom: 7vh; height: 165px; }
     .team-slot { width: 17%; height: 55px; padding: 0; }
     .slot-one { left: 3%; }
@@ -1540,7 +1534,7 @@ body.browser-preview .preview-figure {
     .friend-empty { padding-bottom: 16px; }
     .lfg-heading > span { font-size: 12px; }
     .reopen-panel { top: 12px; right: 12px; }
-    .preview-figure { left: 39.5%; width: 185px; height: 59vh; bottom: 9%; }
+    .preview-figure { left: 50%; width: 185px; height: 59vh; bottom: 9%; }
 }
 
 @media (max-height: 700px) {

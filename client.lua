@@ -3,47 +3,89 @@ local lobbyCam = nil
 local previewPed = nil
 local savedPlayerState = nil
 
-local function getCameraPoint(ped, offset)
+local function getPedBounds(ped)
+    local coords = GetEntityCoords(ped)
+    local head = GetPedBoneCoords(ped, 31086, 0.0, 0.0, 0.0)
+    local leftFoot = GetPedBoneCoords(ped, 14201, 0.0, 0.0, 0.0)
+    local rightFoot = GetPedBoneCoords(ped, 52301, 0.0, 0.0, 0.0)
+    local footZ = math.min(leftFoot.z, rightFoot.z)
+    local height = head.z - footZ
+    local centerOffsetZ = ((head.z + footZ) * 0.5) - coords.z
+
+    if height < 0.75 or height > 4.0 then
+        local minDimensions, maxDimensions = GetModelDimensions(GetEntityModel(ped))
+        height = maxDimensions.z - minDimensions.z
+        centerOffsetZ = (minDimensions.z + maxDimensions.z) * 0.5
+    end
+
+    if height < 0.75 or height > 4.0 then
+        height = 1.8
+        centerOffsetZ = 0.9
+    end
+
+    return height, centerOffsetZ
+end
+
+local function getCameraPoint(ped, rightOffset, forwardOffset, upOffset)
     local coords = GetEntityCoords(ped)
     local forward = GetEntityForwardVector(ped)
     local right = vector3(forward.y, -forward.x, 0.0)
 
     return vector3(
-        coords.x + right.x * (offset.right or 0.0) + forward.x * (offset.forward or 0.0),
-        coords.y + right.y * (offset.right or 0.0) + forward.y * (offset.forward or 0.0),
-        coords.z + (offset.up or 0.0)
+        coords.x + right.x * rightOffset + forward.x * forwardOffset,
+        coords.y + right.y * rightOffset + forward.y * forwardOffset,
+        coords.z + upOffset
     )
 end
 
 local function createPreviewPed(sourcePed)
     -- ClonePed copies the player's current model, head blend, clothing, props,
-    -- and appearance. It is local-only and is deleted when the menu closes.
-    local clone = ClonePed(sourcePed, false, true, true)
+    -- and appearance. This local-only clone is removed when the menu closes.
+    local clone = ClonePed(sourcePed, false, false, true)
     if not clone or clone == 0 or not DoesEntityExist(clone) then
         return nil
     end
 
-    local coords = GetEntityCoords(sourcePed)
+    local sourceCoords = GetEntityCoords(sourcePed)
+    local sourceForward = GetEntityForwardVector(sourcePed)
+    local previewOffset = (Config.Camera and Config.Camera.previewOffset) or {}
+    local previewForward = previewOffset.forward or 1.5
+    local previewRight = previewOffset.right or 0.0
+    local right = vector3(sourceForward.y, -sourceForward.x, 0.0)
+
     SetEntityAsMissionEntity(clone, true, true)
-    SetEntityCoordsNoOffset(clone, coords.x, coords.y, coords.z, false, false, false)
+    SetEntityCoordsNoOffset(
+        clone,
+        sourceCoords.x + sourceForward.x * previewForward + right.x * previewRight,
+        sourceCoords.y + sourceForward.y * previewForward + right.y * previewRight,
+        sourceCoords.z,
+        false, false, false
+    )
     SetEntityHeading(clone, GetEntityHeading(sourcePed))
     SetEntityVisible(clone, true, false)
     ResetEntityAlpha(clone)
-    SetEntityCollision(clone, false, false)
     SetEntityInvincible(clone, true)
     SetEntityCanBeDamaged(clone, false)
     SetBlockingOfNonTemporaryEvents(clone, true)
     SetPedCanRagdoll(clone, false)
     ClearPedTasksImmediately(clone)
     FreezeEntityPosition(clone, true)
+    SetEntityLodDist(clone, 1000)
 
     return clone
 end
 
 local function createLobbyCamera(ped)
     local cameraConfig = Config.Camera or {}
-    local camPosition = getCameraPoint(ped, cameraConfig.offset or {})
-    local lookAt = getCameraPoint(ped, cameraConfig.lookAt or { up = 0.9 })
+    local height, centerOffsetZ = getPedBounds(ped)
+    local distance = height * (cameraConfig.distanceMultiplier or 2.35)
+    local cameraHeight = centerOffsetZ + height * (cameraConfig.cameraHeightRatio or 0.12)
+    local targetHeight = centerOffsetZ + height * (cameraConfig.lookAtHeightRatio or 0.0)
+    local cameraRight = cameraConfig.cameraRight or 0.0
+    local targetRight = cameraConfig.targetRight or 0.0
+
+    local camPosition = getCameraPoint(ped, cameraRight, distance, cameraHeight)
+    local lookAt = getCameraPoint(ped, targetRight, 0.0, targetHeight)
 
     lobbyCam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
     SetCamCoord(lobbyCam, camPosition.x, camPosition.y, camPosition.z)
@@ -78,8 +120,6 @@ local function drawPreviewLighting(ped)
     local forward = GetEntityForwardVector(ped)
     local right = vector3(forward.y, -forward.x, 0.0)
 
-    -- A soft key light plus subtle cyan/magenta fills keep dark outfits and
-    -- custom character models readable while preserving the live 3D ped.
     DrawLightWithRange(
         coords.x + forward.x * 1.75,
         coords.y + forward.y * 1.75,
@@ -116,10 +156,8 @@ local function closeMenu(silent)
         SendNUIMessage({ action = 'close' })
     end
 
-    if savedPlayerState and DoesEntityExist(savedPlayerState.ped) then
-        if Config.FreezePlayerWhileOpen then
-            FreezeEntityPosition(savedPlayerState.ped, savedPlayerState.wasFrozen or false)
-        end
+    if savedPlayerState and DoesEntityExist(savedPlayerState.ped) and Config.FreezePlayerWhileOpen then
+        FreezeEntityPosition(savedPlayerState.ped, savedPlayerState.wasFrozen or false)
     end
 
     if previewPed and previewPed ~= (savedPlayerState and savedPlayerState.ped) and DoesEntityExist(previewPed) then
@@ -163,7 +201,23 @@ local function openMenu()
 
     previewPed = createPreviewPed(ped) or ped
     equipPreviewWeapon(previewPed)
+
+    -- Let the clone finish its first world update before calculating camera
+    -- coordinates. This also supports streamed/custom player models.
+    if previewPed ~= ped then
+        Wait(0)
+        if DoesEntityExist(previewPed) then
+            SetEntityVisible(previewPed, true, false)
+            ResetEntityAlpha(previewPed)
+        end
+    end
+
     createLobbyCamera(previewPed)
+    print(('[neon_lobby] Player preview model: source=%s preview=%s cloned=%s'):format(
+        GetEntityModel(ped),
+        GetEntityModel(previewPed),
+        tostring(previewPed ~= ped)
+    ))
 
     SetNuiFocus(true, true)
     SetNuiFocusKeepInput(false)
@@ -198,13 +252,8 @@ CreateThread(function()
             HideHudAndRadarThisFrame()
             DisablePlayerFiring(PlayerId(), true)
 
-            -- Hide only the original ped locally; other players still see the
-            -- real player. The cloned preview model is what the camera renders.
-            if savedPlayerState and previewPed ~= savedPlayerState.ped and DoesEntityExist(savedPlayerState.ped) then
-                SetEntityLocallyInvisible(savedPlayerState.ped)
-            end
-
             if previewPed and DoesEntityExist(previewPed) then
+                SetEntityVisible(previewPed, true, false)
                 drawPreviewLighting(previewPed)
             end
 

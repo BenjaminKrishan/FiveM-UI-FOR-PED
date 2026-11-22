@@ -12,7 +12,8 @@ files {
     'html/index.html',
     'html/style.css',
     'html/app.js',
-    'html/assets/neon-city.jpg'
+    'html/assets/neon-city.jpg',
+    'html/assets/neon-city-stage.png'
 }
 
 shared_script 'config.lua'
