@@ -18,19 +18,18 @@ Config.PreviewAmmo = 90
 Config.GivePreviewWeaponIfMissing = true
 Config.PreviewLighting = true
 
--- Camera offsets are relative to the player's facing direction.
--- Increase forward for a wider/full-body view; raise lookAt.up to aim higher.
+-- Camera framing scales with the current ped's measured height (including addon
+-- models). The clone is moved forward of the real player so both do not overlap.
 Config.Camera = {
-    offset = {
+    previewOffset = {
         right = 0.0,
-        forward = 4.25,
-        up = 1.15
+        forward = 1.5
     },
-    lookAt = {
-        right = -0.48,
-        forward = 0.0,
-        up = 0.93
-    },
+    distanceMultiplier = 2.35,
+    cameraHeightRatio = 0.12,
+    lookAtHeightRatio = 0.0,
+    cameraRight = 0.0,
+    targetRight = 0.0,
     fov = 38.0,
     transitionMs = 650
 }
