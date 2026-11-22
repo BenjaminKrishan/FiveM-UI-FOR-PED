@@ -9,22 +9,18 @@ Config.DefaultKey = 'F7'
 Config.MenuTitle = 'NEON DISTRICT'
 Config.ServerLabel = 'LOS SANTOS  /  US-01'
 
--- A local preview clone is copied from the current player ped when /menu opens,
--- preserving the model, head blend, clothing, and props. This weapon is equipped
--- only on that clone, so the player's real inventory/selected weapon is untouched.
+-- The camera displays PlayerPedId() directly, preserving the exact active model,
+-- head blend, clothing, props, and live appearance without spawning another ped.
 Config.PreviewWeapon = 'WEAPON_CARBINERIFLE'
 Config.PreviewWeaponLabel = 'CARBINE RIFLE'
 Config.PreviewAmmo = 90
 Config.GivePreviewWeaponIfMissing = true
 Config.PreviewLighting = true
+Config.RemovePreviewWeaponOnClose = true
 
--- Camera framing scales with the current ped's measured height (including addon
--- models). The clone is moved forward of the real player so both do not overlap.
+-- Camera framing scales with the current ped's measured height, including addon
+-- models, so the full character fits the transparent player-stage window.
 Config.Camera = {
-    previewOffset = {
-        right = 0.0,
-        forward = 1.5
-    },
     distanceMultiplier = 2.35,
     cameraHeightRatio = 0.12,
     lookAtHeightRatio = 0.0,

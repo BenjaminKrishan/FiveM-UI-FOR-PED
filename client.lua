@@ -38,43 +38,6 @@ local function getCameraPoint(ped, rightOffset, forwardOffset, upOffset)
     )
 end
 
-local function createPreviewPed(sourcePed)
-    -- ClonePed copies the player's current model, head blend, clothing, props,
-    -- and appearance. This local-only clone is removed when the menu closes.
-    local clone = ClonePed(sourcePed, false, false, true)
-    if not clone or clone == 0 or not DoesEntityExist(clone) then
-        return nil
-    end
-
-    local sourceCoords = GetEntityCoords(sourcePed)
-    local sourceForward = GetEntityForwardVector(sourcePed)
-    local previewOffset = (Config.Camera and Config.Camera.previewOffset) or {}
-    local previewForward = previewOffset.forward or 1.5
-    local previewRight = previewOffset.right or 0.0
-    local right = vector3(sourceForward.y, -sourceForward.x, 0.0)
-
-    SetEntityAsMissionEntity(clone, true, true)
-    SetEntityCoordsNoOffset(
-        clone,
-        sourceCoords.x + sourceForward.x * previewForward + right.x * previewRight,
-        sourceCoords.y + sourceForward.y * previewForward + right.y * previewRight,
-        sourceCoords.z,
-        false, false, false
-    )
-    SetEntityHeading(clone, GetEntityHeading(sourcePed))
-    SetEntityVisible(clone, true, false)
-    ResetEntityAlpha(clone)
-    SetEntityInvincible(clone, true)
-    SetEntityCanBeDamaged(clone, false)
-    SetBlockingOfNonTemporaryEvents(clone, true)
-    SetPedCanRagdoll(clone, false)
-    ClearPedTasksImmediately(clone)
-    FreezeEntityPosition(clone, true)
-    SetEntityLodDist(clone, 1000)
-
-    return clone
-end
-
 local function createLobbyCamera(ped)
     local cameraConfig = Config.Camera or {}
     local height, centerOffsetZ = getPedBounds(ped)
@@ -98,17 +61,23 @@ end
 local function equipPreviewWeapon(ped)
     local weaponName = Config.PreviewWeapon
     if type(weaponName) ~= 'string' or weaponName == '' then
-        return
+        return nil, false
     end
 
     local weaponHash = GetHashKey(weaponName)
-    if not HasPedGotWeapon(ped, weaponHash, false) and Config.GivePreviewWeaponIfMissing then
+    local hadWeapon = HasPedGotWeapon(ped, weaponHash, false)
+    local addedForPreview = false
+
+    if not hadWeapon and Config.GivePreviewWeaponIfMissing then
         GiveWeaponToPed(ped, weaponHash, Config.PreviewAmmo or 0, false, true)
+        addedForPreview = HasPedGotWeapon(ped, weaponHash, false)
     end
 
     if HasPedGotWeapon(ped, weaponHash, false) then
         SetCurrentPedWeapon(ped, weaponHash, true)
     end
+
+    return weaponHash, addedForPreview
 end
 
 local function drawPreviewLighting(ped)
@@ -156,13 +125,24 @@ local function closeMenu(silent)
         SendNUIMessage({ action = 'close' })
     end
 
-    if savedPlayerState and DoesEntityExist(savedPlayerState.ped) and Config.FreezePlayerWhileOpen then
-        FreezeEntityPosition(savedPlayerState.ped, savedPlayerState.wasFrozen or false)
+    if savedPlayerState and DoesEntityExist(savedPlayerState.ped) then
+        local ped = savedPlayerState.ped
+
+        if savedPlayerState.addedPreviewWeapon
+            and Config.RemovePreviewWeaponOnClose
+            and savedPlayerState.previewWeaponHash then
+            RemoveWeaponFromPed(ped, savedPlayerState.previewWeaponHash)
+        end
+
+        if savedPlayerState.selectedWeapon then
+            SetCurrentPedWeapon(ped, savedPlayerState.selectedWeapon, true)
+        end
+
+        if Config.FreezePlayerWhileOpen then
+            FreezeEntityPosition(ped, savedPlayerState.wasFrozen or false)
+        end
     end
 
-    if previewPed and previewPed ~= (savedPlayerState and savedPlayerState.ped) and DoesEntityExist(previewPed) then
-        DeleteEntity(previewPed)
-    end
     previewPed = nil
 
     local transitionMs = (Config.Camera and Config.Camera.transitionMs) or 650
@@ -192,31 +172,27 @@ local function openMenu()
     menuOpen = true
     savedPlayerState = {
         ped = ped,
-        wasFrozen = IsEntityPositionFrozen(ped)
+        wasFrozen = IsEntityPositionFrozen(ped),
+        selectedWeapon = GetSelectedPedWeapon(ped),
+        addedPreviewWeapon = false,
+        previewWeaponHash = nil
     }
 
     if Config.FreezePlayerWhileOpen then
         FreezeEntityPosition(ped, true)
     end
 
-    previewPed = createPreviewPed(ped) or ped
-    equipPreviewWeapon(previewPed)
-
-    -- Let the clone finish its first world update before calculating camera
-    -- coordinates. This also supports streamed/custom player models.
-    if previewPed ~= ped then
-        Wait(0)
-        if DoesEntityExist(previewPed) then
-            SetEntityVisible(previewPed, true, false)
-            ResetEntityAlpha(previewPed)
-        end
-    end
+    -- Render the actual PlayerPedId instead of a separate clone. This guarantees
+    -- the camera uses the exact model and outfit currently active in the game.
+    previewPed = ped
+    local weaponHash, addedPreviewWeapon = equipPreviewWeapon(previewPed)
+    savedPlayerState.previewWeaponHash = weaponHash
+    savedPlayerState.addedPreviewWeapon = addedPreviewWeapon
 
     createLobbyCamera(previewPed)
-    print(('[neon_lobby] Player preview model: source=%s preview=%s cloned=%s'):format(
+    print(('[neon_lobby] Player preview model: source=%s preview=%s cloned=false'):format(
         GetEntityModel(ped),
-        GetEntityModel(previewPed),
-        tostring(previewPed ~= ped)
+        GetEntityModel(previewPed)
     ))
 
     SetNuiFocus(true, true)
@@ -253,7 +229,6 @@ CreateThread(function()
             DisablePlayerFiring(PlayerId(), true)
 
             if previewPed and DoesEntityExist(previewPed) then
-                SetEntityVisible(previewPed, true, false)
                 drawPreviewLighting(previewPed)
             end
 
